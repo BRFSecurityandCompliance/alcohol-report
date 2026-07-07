@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src 'self' data: blob: https://res.cloudinary.com;
+  connect-src 'self' https://*.supabase.co;
+  base-uri 'self';
+">
+<title>S&amp;C Control Console · Alcohol Report Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-display:'Chakra Petch',sans-serif; --font-body:'IBM Plex Sans Thai',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+}
+html[data-theme="light"]{
+  --bg:#E9ECEF;--bg-grid:rgba(43,52,64,.045);--surface:#FFFFFF;--surface-2:#F4F6F8;
+  --ink:#191D22;--muted:#5C646D;--faint:#8A929B;--line:#D3D9DF;--line-strong:#BAC2CA;
+  --hazard:#C1121F;--hazard-2:#8A0C16;--hazard-soft:#FBEAEB;--caution:#C77900;--caution-soft:#FBF0DD;
+  --ok:#1B7A4B;--ok-soft:#E5F3EB;--steel:#2B3440;--shadow:rgba(25,29,34,.10);
+}
+html[data-theme="dark"]{
+  --bg:#121519;--bg-grid:rgba(255,255,255,.035);--surface:#1B2027;--surface-2:#232A32;
+  --ink:#E7EBEF;--muted:#9AA3AD;--faint:#6C757E;--line:#2E353E;--line-strong:#3B434D;
+  --hazard:#FF4D52;--hazard-2:#C1121F;--hazard-soft:#2A1618;--caution:#F0B03C;--caution-soft:#2A2213;
+  --ok:#37C07A;--ok-soft:#14251C;--steel:#AEB6BF;--shadow:rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(var(--bg-grid) 1px,transparent 1px),linear-gradient(90deg,var(--bg-grid) 1px,transparent 1px);
+  background-size:26px 26px;min-height:100vh;padding-bottom:48px;transition:background-color .3s,color .3s;
+}
+.hazard-bar{height:8px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 14px,var(--hazard-2) 14px 28px);position:sticky;top:0;z-index:50}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px}
+button{font-family:var(--font-display);cursor:pointer}
+input,select,textarea{font-family:var(--font-body)}
+
+/* ---------- LOGIN ---------- */
+.login-screen{min-height:calc(100vh - 8px);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;width:100%;max-width:400px;padding:34px 28px;box-shadow:0 8px 30px var(--shadow)}
+.login-card .mark{width:56px;height:56px;border-radius:12px;background:var(--hazard);color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:26px;margin:0 auto 18px;box-shadow:0 4px 0 var(--hazard-2)}
+.login-card h1{font-family:var(--font-display);font-weight:700;font-size:19px;text-align:center;margin-bottom:4px}
+.login-card .sub{text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:24px}
+.login-card label{font-family:var(--font-display);font-weight:500;font-size:13px;display:block;margin-bottom:6px}
+.login-card input{width:100%;font-size:15px;padding:12px;border:1.5px solid var(--line-strong);border-radius:9px;background:var(--surface);color:var(--ink)}
+.login-card input:focus{outline:none;border-color:var(--hazard);box-shadow:0 0 0 3px var(--hazard-soft)}
+.login-card .btn-login{width:100%;margin-top:16px;background:var(--hazard);color:#fff;border:none;border-radius:10px;padding:13px;font-weight:600;font-size:15px}
+.login-card .btn-login:disabled{opacity:.5;cursor:not-allowed}
+.login-msg{margin-top:12px;font-size:13px;text-align:center;font-weight:500;min-height:18px}
+.login-msg.err{color:var(--hazard)}
+.login-note{margin-top:18px;font-size:11px;color:var(--faint);text-align:center;line-height:1.6;font-family:var(--font-mono)}
+
+/* ---------- APP SHELL ---------- */
+.app-shell{display:none}
+.app-shell.show{display:block}
+header.top{padding:20px 0 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top .mark{width:42px;height:42px;border-radius:9px;background:var(--hazard);color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:20px;box-shadow:0 3px 0 var(--hazard-2)}
+.top h1{font-family:var(--font-display);font-weight:700;font-size:17px;line-height:1.2}
+.top .sub{font-family:var(--font-mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+.top .spacer{flex:1}
+.icon-btn{border:1.5px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 11px;font-family:var(--font-mono);font-size:12px;display:flex;align-items:center;gap:6px}
+.icon-btn:hover{border-color:var(--hazard);color:var(--hazard)}
+.session-pill{font-family:var(--font-mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:5px 9px}
+
+/* tabs */
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin:8px 0 20px;overflow-x:auto}
+.tab{border:none;background:none;padding:11px 15px;font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.tab.active{color:var(--hazard);border-bottom-color:var(--hazard)}
+.tab:hover{color:var(--ink)}
+.panel{display:none;animation:fade .3s}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* cards */
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 2px var(--shadow)}
+.card-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1.5px solid var(--line);background:var(--surface-2)}
+.card-head .ic{font-size:18px}
+.card-head h2{font-family:var(--font-display);font-weight:600;font-size:15px}
+.card-head .r{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.card-body{padding:16px}
+.card-desc{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+
+/* fields */
+.fld{margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.lbl{font-family:var(--font-display);font-weight:500;font-size:13px;display:block;margin-bottom:6px}
+.lbl .tag{font-family:var(--font-mono);font-size:10px;color:var(--faint);margin-left:6px;text-transform:uppercase}
+.inp{width:100%;font-size:14px;padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--ink)}
+.inp:focus{outline:none;border-color:var(--hazard);box-shadow:0 0 0 3px var(--hazard-soft)}
+.inp.mono{font-family:var(--font-mono);font-size:13px}
+textarea.inp{resize:vertical;min-height:70px}
+.hlp{font-size:12px;color:var(--muted);margin-top:5px}
+
+/* buttons */
+.btn{border:1.5px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:9px;padding:9px 14px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn:hover{border-color:var(--hazard)}
+.btn.primary{background:var(--hazard);border-color:var(--hazard);color:#fff}
+.btn.primary:hover{background:var(--hazard-2);border-color:var(--hazard-2)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn.danger{color:var(--hazard);border-color:var(--hazard)}
+
+/* health badges / chips */
+.badges{display:flex;flex-wrap:wrap;gap:9px}
+.badge{font-family:var(--font-mono);font-size:12px;font-weight:500;padding:6px 11px;border-radius:7px;border:1.5px solid;display:flex;align-items:center;gap:6px}
+.badge.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.badge.no{background:var(--hazard-soft);border-color:var(--hazard);color:var(--hazard)}
+.badge.info{background:var(--surface-2);border-color:var(--line-strong);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{font-family:var(--font-mono);font-size:13px;background:var(--surface-2);border:1.5px solid var(--line-strong);border-radius:7px;padding:6px 10px;display:flex;align-items:center;gap:8px}
+.chip button{border:none;background:none;color:var(--hazard);font-size:15px;line-height:1;padding:0;cursor:pointer}
+.chip-add{display:flex;gap:8px;margin-top:10px}
+.chip-add input{flex:1}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1.5px solid var(--line);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-family:var(--font-display);font-weight:600;font-size:12px;text-align:left;padding:10px 11px;background:var(--surface-2);border-bottom:1.5px solid var(--line);white-space:nowrap;position:sticky;top:0}
+td{padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td input,td select{width:100%;min-width:120px;font-size:13px;padding:7px 9px;border:1.5px solid var(--line-strong);border-radius:7px;background:var(--surface);color:var(--ink)}
+td input:focus,td select:focus{outline:none;border-color:var(--hazard)}
+td.mono{font-family:var(--font-mono);font-size:12px}
+.row-del{border:none;background:var(--hazard-soft);color:var(--hazard);border-radius:6px;width:30px;height:30px;font-size:16px;cursor:pointer}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:13px}
+
+/* warning box */
+.warn{display:flex;gap:11px;background:var(--caution-soft);border:1.5px solid var(--caution);border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--ink);margin-bottom:14px}
+.warn .wic{color:var(--caution);font-size:18px;flex:none}
+.warn b{color:var(--caution)}
+.info-box{background:var(--surface-2);border:1.5px solid var(--line);border-left:4px solid var(--steel);border-radius:9px;padding:13px 15px;font-size:13px;line-height:1.7;margin-bottom:12px}
+.info-box b{font-family:var(--font-display)}
+.code{font-family:var(--font-mono);font-size:12px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:9px;padding:13px;white-space:pre-wrap;word-break:break-word;color:var(--ink);max-height:260px;overflow:auto}
+
+/* collapsible */
+details{border:1.5px solid var(--line);border-radius:10px;margin-top:12px;overflow:hidden}
+summary{padding:13px 15px;font-family:var(--font-display);font-weight:600;font-size:14px;cursor:pointer;background:var(--surface-2);list-style:none;display:flex;align-items:center;gap:9px}
+summary::-webkit-details-marker{display:none}
+summary .arw{margin-left:auto;transition:.2s}
+details[open] summary .arw{transform:rotate(90deg)}
+.details-body{padding:15px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);background:var(--steel);color:var(--surface);padding:12px 20px;border-radius:10px;font-family:var(--font-display);font-weight:600;font-size:14px;z-index:200;opacity:0;transition:.3s;box-shadow:0 6px 20px rgba(0,0,0,.3);max-width:90vw;text-align:center}
+html[data-theme="dark"] .toast{color:#121519}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:var(--hazard);color:#fff}
+
+.foot{text-align:center;margin-top:24px;font-size:11.5px;color:var(--faint);font-family:var(--font-mono);letter-spacing:.4px;line-height:1.8}
+.foot .conf{color:var(--hazard);font-weight:500}
+.filters{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end}
+.filters .fld{margin:0;flex:1;min-width:130px}
+.filters .fld .lbl{font-size:11px;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="hazard-bar"></div>
+
+<!-- ================= LOGIN ================= -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="mark">⚙</div>
+    <h1>S&amp;C Control Console</h1>
+    <div class="sub">Alcohol Report · Admin Access</div>
+    <label for="pw">รหัสผ่านผู้ดูแล</label>
+    <input type="password" id="pw" autocomplete="current-password" placeholder="••••••••">
+    <button class="btn-login" id="loginBtn">เข้าสู่ระบบ</button>
+    <div class="login-msg" id="loginMsg"></div>
+    <div class="login-note">🔒 การล็อกอินนี้เป็น "ด่าน" ฝั่ง client เท่านั้น<br>สิทธิ์เข้าถึงข้อมูลจริงคุมที่ M365 / Supabase</div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app-shell" id="app">
+<div class="wrap">
+  <header class="top">
+    <div class="mark">⚙</div>
+    <div>
+      <h1>S&amp;C Control Console</h1>
+      <div class="sub">Alcohol Report System · Admin</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="session-pill" id="sessionPill">session</span>
+    <button class="icon-btn" id="themeBtn">🌓</button>
+    <button class="icon-btn" id="logoutBtn">⎋ ออก</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="config">⚙️ ตั้งค่าระบบ</button>
+    <button class="tab" data-tab="routing">🗂️ การส่งอีเมล</button>
+    <button class="tab" data-tab="reports">📋 รายงาน</button>
+    <button class="tab" data-tab="security">🔒 ความปลอดภัย</button>
+  </nav>
+
+  <!-- ===== TAB: CONFIG ===== -->
+  <section class="panel active" id="panel-config">
+    <div class="card">
+      <div class="card-head"><span class="ic">🩺</span><h2>สถานะระบบ</h2><div class="r"><button class="btn sm ghost" id="refreshHealth">↻ ตรวจ</button></div></div>
+      <div class="card-body"><div class="badges" id="healthBadges"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="ic">🔌</span><h2>การเชื่อมต่อ (Endpoints)</h2></div>
+      <div class="card-body">
+        <div class="fld">
+          <label class="lbl" for="cfg_webhook">Power Automate Webhook URL</label>
+          <input class="inp mono" id="cfg_webhook" placeholder="https://...logic.azure.com/...">
+          <div class="hlp">URL จาก trigger "When a HTTP request is received"</div>
+        </div>
+        <div class="fld">
+          <label class="lbl" for="cfg_token">Shared Token <span class="tag">body-level</span></label>
+          <input class="inp mono" id="cfg_token" placeholder="เช่น bevchain-alc-7Kq9">
+          <div class="hlp">⚠️ ด่านชะลอ ไม่ใช่รหัสจริง — flow ต้องตรวจค่านี้อีกชั้น</div>
+        </div>
+        <div class="grid2">
+          <div class="fld"><label class="lbl" for="cfg_cloud">Cloudinary Cloud Name</label><input class="inp mono" id="cfg_cloud"></div>
+          <div class="fld"><label class="lbl" for="cfg_preset">Upload Preset (unsigned)</label><input class="inp mono" id="cfg_preset"></div>
+        </div>
+        <div class="fld"><label class="lbl" for="cfg_folder">Cloudinary Folder</label><input class="inp mono" id="cfg_folder"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="ic">📍</span><h2>รายชื่อไซต์</h2></div>
+      <div class="card-body">
+        <div class="card-desc">ต้องสะกดตรงกับคอลัมน์ <b>Title</b> ใน SharePoint routing list และตรงกับตาราง "การส่งอีเมล"</div>
+        <div class="chips" id="siteChips"></div>
+        <div class="chip-add"><input class="inp mono" id="newSite" placeholder="เพิ่มไซต์ เช่น NDC2"><button class="btn primary sm" id="addSite">+ เพิ่ม</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="ic">🎚️</span><h2>นโยบายและรูปภาพ</h2></div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="fld"><label class="lbl" for="cfg_threshold">เกณฑ์ "สูงกว่าปกติ" <span class="tag">ว่าง=ปิด</span></label><input class="inp mono" id="cfg_threshold" placeholder="0.05"></div>
+          <div class="fld"><label class="lbl" for="cfg_version">App Version</label><input class="inp mono" id="cfg_version" placeholder="1.0.0"></div>
+        </div>
+        <div class="grid2">
+          <div class="fld"><label class="lbl" for="cfg_maxdim">ขนาดรูปสูงสุด (px)</label><input class="inp mono" id="cfg_maxdim" placeholder="1600"></div>
+          <div class="fld"><label class="lbl" for="cfg_quality">คุณภาพรูป (0–1)</label><input class="inp mono" id="cfg_quality" placeholder="0.82"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="ic">💾</span><h2>บันทึกและส่งออก</h2></div>
+      <div class="card-body">
+        <div class="badges" style="margin-bottom:14px">
+          <button class="btn primary" id="saveCfg">💾 บันทึกการตั้งค่า</button>
+          <button class="btn" id="exportCfg">⬇ ส่งออก JSON</button>
+          <button class="btn" id="importCfgBtn">⬆ นำเข้า JSON</button>
+          <input type="file" id="importCfg" accept="application/json" hidden>
+        </div>
+        <div class="info-box"><b>📋 นำไปใช้กับฟอร์ม:</b> กด "สร้าง CONFIG" แล้ววางแทนบล็อก <span class="code" style="display:inline;padding:2px 6px">const CONFIG = {…}</span> ใน <b>alcohol-report.html</b> จากนั้น deploy ใหม่</div>
+        <button class="btn primary" id="genCfg">🧩 สร้าง CONFIG block</button>
+        <pre class="code" id="cfgBlock" style="display:none;margin-top:12px"></pre>
+        <button class="btn sm" id="copyCfg" style="display:none;margin-top:8px">📄 คัดลอก</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: ROUTING ===== -->
+  <section class="panel" id="panel-routing">
+    <div class="card">
+      <div class="card-head"><span class="ic">🗂️</span><h2>ตารางส่งอีเมลตามไซต์</h2>
+        <div class="r"><button class="btn sm" id="addRoute">+ เพิ่มแถว</button></div>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">แมป <b>ไซต์ → อีเมลผู้จัดการ</b> ข้อมูลนี้คือสิ่งที่ต้องใส่ใน SharePoint list <b>AlcoholTest_SiteRouting</b> (Power Automate อ่านจากตรงนั้น)</div>
+        <div class="tbl-wrap">
+          <table id="routeTable">
+            <thead><tr><th>Site (Title)</th><th>ManagerEmail</th><th>CCEmail <span style="font-weight:400;color:var(--faint)">(คั่นด้วย ;)</span></th><th></th></tr></thead>
+            <tbody id="routeBody"></tbody>
+          </table>
+        </div>
+        <div class="badges" style="margin-top:14px">
+          <button class="btn primary" id="saveRoutes">💾 บันทึก</button>
+          <button class="btn" id="exportRoutesCsv">⬇ CSV (สำหรับ SharePoint)</button>
+          <button class="btn" id="exportRoutesJson">⬇ JSON</button>
+          <button class="btn ghost sm" id="checkRoutes">🔍 ตรวจความครบ</button>
+        </div>
+        <div id="routeCheck" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div class="info-box">
+      <b>วิธีนำเข้า SharePoint:</b> คอลัมน์ list = <span class="code" style="display:inline;padding:1px 5px">Title · ManagerEmail · CCEmail</span> → เปิด list ในมุมมอง Grid/Quick edit แล้ววางข้อมูลจาก CSV หรือใช้ "Import from Excel"
+    </div>
+  </section>
+
+  <!-- ===== TAB: REPORTS ===== -->
+  <section class="panel" id="panel-reports">
+    <div class="card">
+      <div class="card-head"><span class="ic">🔗</span><h2>เปิดดูรายงาน (แนะนำ)</h2></div>
+      <div class="card-body">
+        <div class="info-box">ข้อมูลรายงานเก็บใน <b>SharePoint (AlcoholTest_Log)</b> ซึ่งคุมสิทธิ์ด้วย M365 — ปลอดภัยและตรงกับ PDPA ที่สุด แนะนำเปิดดูผ่านช่องทางนี้</div>
+        <div class="fld"><label class="lbl" for="rc_sp">SharePoint List URL</label><input class="inp mono" id="rc_sp" placeholder="https://xxx.sharepoint.com/.../AlcoholTest_Log"></div>
+        <div class="fld"><label class="lbl" for="rc_pbi">Power BI Dashboard URL <span class="tag">ถ้ามี</span></label><input class="inp mono" id="rc_pbi" placeholder="https://app.powerbi.com/..."></div>
+        <div class="badges">
+          <button class="btn primary" id="openSp">↗ เปิด SharePoint</button>
+          <button class="btn" id="openPbi">↗ เปิด Power BI</button>
+          <button class="btn ghost sm" id="saveReportCfg">💾 จำ URL</button>
+        </div>
+      </div>
+    </div>
+
+    <details id="supaDetails">
+      <summary>🧪 Live Viewer ผ่าน Supabase <span style="font-weight:400;color:var(--faint)">(ขั้นสูง)</span> <span class="arw">›</span></summary>
+      <div class="details-body">
+        <div class="warn"><span class="wic">⚠️</span><div>ข้อมูลนี้เป็นข้อมูลส่วนบุคคล/อ่อนไหว (PDPA) <b>อย่าใช้ anon key ที่เปิดอ่านตารางนี้บนหน้า public</b> — ตั้ง RLS ให้ปิดการอ่านสำหรับ anon แล้วใช้ Supabase Auth หรือ service role ในที่ที่เชื่อถือได้เท่านั้น · key ที่กรอกด้านล่างเก็บในหน่วยความจำชั่วคราว ไม่บันทึกลงเครื่อง</div></div>
+        <div class="grid2">
+          <div class="fld"><label class="lbl" for="sb_url">Supabase URL</label><input class="inp mono" id="sb_url" placeholder="https://xxxx.supabase.co"></div>
+          <div class="fld"><label class="lbl" for="sb_table">Table</label><input class="inp mono" id="sb_table" placeholder="alcohol_reports"></div>
+        </div>
+        <div class="fld"><label class="lbl" for="sb_key">API Key <span class="tag">memory only</span></label><input class="inp mono" id="sb_key" type="password" placeholder="ใส่ตอนใช้งาน · ไม่ถูกบันทึก"></div>
+        <button class="btn primary" id="loadReports">🔄 โหลดรายงาน</button>
+
+        <div id="reportsArea" style="display:none;margin-top:16px">
+          <div class="filters">
+            <div class="fld"><label class="lbl">ไซต์</label><select class="inp" id="fSite"><option value="">ทั้งหมด</option></select></div>
+            <div class="fld"><label class="lbl">ตั้งแต่</label><input class="inp mono" id="fFrom" type="date"></div>
+            <div class="fld"><label class="lbl">ถึง</label><input class="inp mono" id="fTo" type="date"></div>
+            <div class="fld"><label class="lbl">สถานะ</label><select class="inp" id="fSev"><option value="">ทั้งหมด</option><option value="positive">Positive</option><option value="elevated">Elevated</option></select></div>
+            <div class="fld"><label class="lbl">ค้นหา</label><input class="inp" id="fSearch" placeholder="ชื่อ/บริษัท/ทะเบียน"></div>
+            <button class="btn sm" id="exportReportsCsv">⬇ CSV</button>
+          </div>
+          <div class="tbl-wrap"><table id="reportsTable"><thead id="reportsHead"></thead><tbody id="reportsBody"></tbody></table></div>
+          <div class="hlp" id="reportsCount" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== TAB: SECURITY ===== -->
+  <section class="panel" id="panel-security">
+    <div class="card">
+      <div class="card-head"><span class="ic">🔑</span><h2>เปลี่ยนรหัสผ่านผู้ดูแล</h2></div>
+      <div class="card-body">
+        <div class="card-desc">รหัสผ่านเก็บเป็น SHA-256 ในไฟล์ admin.html พิมพ์รหัสใหม่เพื่อสร้าง hash แล้วนำไปวางแทนค่า <b>PW_HASH</b> จากนั้น deploy ใหม่</div>
+        <div class="fld"><label class="lbl" for="newPw">รหัสผ่านใหม่</label><input class="inp" id="newPw" type="text" placeholder="ตั้งรหัสที่คาดเดายาก"></div>
+        <button class="btn primary" id="genHash">🔐 สร้าง Hash</button>
+        <pre class="code" id="hashOut" style="display:none;margin-top:12px"></pre>
+        <button class="btn sm" id="copyHash" style="display:none;margin-top:8px">📄 คัดลอก hash</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="ic">🛡️</span><h2>สรุปสถานะความปลอดภัย (อ่านก่อน go-live)</h2></div>
+      <div class="card-body">
+        <div class="info-box"><b>1. URL ของ flow = ความลับ</b><br>มันฝังใน JS บนเว็บ public ใครได้ URL ก็ยิงได้ · โทเค็นในฟอร์มเป็นด่านชะลอเท่านั้น → ยกระดับด้วย Cloudflare Worker คั่นกลางเพื่อซ่อน URL+token</div>
+        <div class="info-box"><b>2. PDPA — ข้อมูลอ่อนไหว</b><br>ชื่อ ทะเบียน ผลตรวจ = ข้อมูลส่วนบุคคล → จำกัดสิทธิ์เข้าถึง SharePoint list/log และโฟลเดอร์ Cloudinary · ตั้ง retention · อย่าเปิดอ่านผ่าน public key</div>
+        <div class="info-box"><b>3. Cloudinary unsigned preset</b><br>ใครมี cloud name + preset ก็อัปได้ → จำกัด format/ขนาด เปิด moderation แยกโฟลเดอร์</div>
+        <div class="info-box"><b>4. รหัสผ่านหน้านี้</b><br>เป็นการตรวจฝั่ง client (ดู source เห็น hash ได้) กันคนทั่วไป ไม่กันผู้เชี่ยวชาญ · การป้องกันจริงอยู่ที่สิทธิ์ของ SharePoint/Supabase</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="ic">🧹</span><h2>ล้างข้อมูลตั้งค่าในเครื่องนี้</h2></div>
+      <div class="card-body">
+        <div class="card-desc">ลบ config/routing/URL ที่บันทึกไว้ใน browser นี้ (ไม่กระทบข้อมูลรายงานหรือ flow)</div>
+        <button class="btn danger" id="clearLocal">🗑️ ล้างข้อมูลตั้งค่าในเครื่อง</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot"><span class="conf">■ เอกสารลับ · สำหรับใช้ภายในเท่านั้น</span><br>BevChain Security &amp; Compliance · Control Console</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================================
+   🔐 ADMIN AUTH — SHA-256 (default password: SCadmin2026! — เปลี่ยนในแท็บ Security)
+   ============================================================================ */
+const PW_HASH = "66e1ca9a001df043e75b24fe8a9ab8cd837f8b851f30f45205c5dacb4f94da7b";
+const MAX_ATTEMPTS = 5, LOCK_MIN = 5, SESSION_MIN = 30;
+
+const store = (()=>{ try{ const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return localStorage; }catch(e){ return null; } })();
+const $ = id => document.getElementById(id);
+
+let sessionActive = false, idleTimer = null, supaKey = "", reportRows = [];
+
+/* ---- default config ---- */
+const DEFAULT_CFG = {
+  webhookUrl:"", sharedToken:"",
+  cloudName:"diiqvxqqd", uploadPreset:"alcohol_report", photoFolder:"alcohol_reports",
+  sites:["LLKDC","NDC","KKRDC","BBT","TW","SBC"],
+  criticalThreshold:0.05, appVersion:"1.0.0", maxImageDim:1600, imageQuality:0.82
+};
+let cfg = {}, routes = [], reportCfg = {};
+
+/* ============================================================================
+   UTIL
+   ============================================================================ */
+async function sha256(s){ const b=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+function toast(msg, err){ const el=$("toast"); el.textContent=msg; el.className="toast show"+(err?" err":""); clearTimeout(el._t); el._t=setTimeout(()=>el.className="toast",2600); }
+function load(key, fb){ if(!store) return fb; try{ const v=JSON.parse(store.getItem(key)); return v==null?fb:v; }catch(_){ return fb; } }
+function save(key, val){ if(store) try{ store.setItem(key, JSON.stringify(val)); }catch(_){} }
+function download(name, content, type){ const b=new Blob([content],{type:type||"text/plain;charset=utf-8"}); const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u); }
+async function copyText(txt){ try{ await navigator.clipboard.writeText(txt); toast("คัดลอกแล้ว ✓"); }catch(_){ const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("คัดลอกแล้ว ✓"); }catch(e){ toast("คัดลอกไม่สำเร็จ",true); } ta.remove(); } }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validEmails(str){ if(!str) return false; return str.split(";").map(s=>s.trim()).filter(Boolean).every(e=>EMAIL_RE.test(e)); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function csvCell(v){ v=String(v==null?"":v); return /[",\n;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+
+/* ============================================================================
+   LOGIN
+   ============================================================================ */
+function lockState(){ const until=load("alc_admin_lockUntil",0); return until>Date.now()?until:0; }
+async function tryLogin(){
+  const until=lockState();
+  if(until){ $("loginMsg").className="login-msg err"; $("loginMsg").textContent=`ถูกล็อก ลองใหม่ใน ${Math.ceil((until-Date.now())/60000)} นาที`; return; }
+  const pw=$("pw").value; if(!pw) return;
+  const h=await sha256(pw);
+  if(h===PW_HASH){
+    save("alc_admin_attempts",0);
+    enterApp();
+  }else{
+    let a=load("alc_admin_attempts",0)+1; save("alc_admin_attempts",a);
+    if(a>=MAX_ATTEMPTS){ const u=Date.now()+LOCK_MIN*60000; save("alc_admin_lockUntil",u); save("alc_admin_attempts",0); $("loginMsg").textContent=`พยายามเกินกำหนด ล็อก ${LOCK_MIN} นาที`; }
+    else $("loginMsg").textContent=`รหัสผ่านไม่ถูกต้อง (เหลือ ${MAX_ATTEMPTS-a} ครั้ง)`;
+    $("loginMsg").className="login-msg err"; $("pw").value="";
+  }
+}
+function enterApp(){
+  sessionActive=true;
+  $("loginScreen").style.display="none";
+  $("app").classList.add("show");
+  bootData();
+  resetIdle();
+  ["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true}));
+}
+function resetIdle(){ if(!sessionActive) return; clearTimeout(idleTimer); idleTimer=setTimeout(logout, SESSION_MIN*60000); const m=Math.round(SESSION_MIN); $("sessionPill").textContent="🟢 session "+m+"m"; }
+function logout(){ sessionActive=false; supaKey=""; clearTimeout(idleTimer); $("app").classList.remove("show"); $("loginScreen").style.display="flex"; $("pw").value=""; $("loginMsg").textContent=""; }
+
+/* ============================================================================
+   BOOT DATA + THEME + TABS
+   ============================================================================ */
+function bootData(){
+  cfg = Object.assign({}, DEFAULT_CFG, load("alc_admin_cfg",{}));
+  routes = load("alc_admin_routes", DEFAULT_CFG.sites.map(s=>({site:s,manager:"",cc:""})));
+  reportCfg = load("alc_admin_reportcfg",{sp:"",pbi:"",supaUrl:"",supaTable:"alcohol_reports"});
+  fillConfig(); renderSites(); renderRoutes(); fillReportCfg(); renderHealth();
+}
+function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); save("alc_admin_theme",t); }
+
+/* ============================================================================
+   CONFIG TAB
+   ============================================================================ */
+function fillConfig(){
+  $("cfg_webhook").value=cfg.webhookUrl||""; $("cfg_token").value=cfg.sharedToken||"";
+  $("cfg_cloud").value=cfg.cloudName||""; $("cfg_preset").value=cfg.uploadPreset||""; $("cfg_folder").value=cfg.photoFolder||"";
+  $("cfg_threshold").value=cfg.criticalThreshold==null?"":cfg.criticalThreshold;
+  $("cfg_version").value=cfg.appVersion||""; $("cfg_maxdim").value=cfg.maxImageDim||1600; $("cfg_quality").value=cfg.imageQuality||0.82;
+}
+function readConfig(){
+  cfg.webhookUrl=$("cfg_webhook").value.trim(); cfg.sharedToken=$("cfg_token").value.trim();
+  cfg.cloudName=$("cfg_cloud").value.trim(); cfg.uploadPreset=$("cfg_preset").value.trim(); cfg.photoFolder=$("cfg_folder").value.trim();
+  const th=$("cfg_threshold").value.trim(); cfg.criticalThreshold = th==="" ? null : (isNaN(parseFloat(th))?null:parseFloat(th));
+  cfg.appVersion=$("cfg_version").value.trim()||"1.0.0";
+  cfg.maxImageDim=parseInt($("cfg_maxdim").value)||1600; cfg.imageQuality=parseFloat($("cfg_quality").value)||0.82;
+}
+function renderSites(){
+  const box=$("siteChips"); box.innerHTML="";
+  cfg.sites.forEach((s,i)=>{ const c=document.createElement("div"); c.className="chip"; c.innerHTML=`${esc(s)} <button data-i="${i}" title="ลบ">×</button>`; box.appendChild(c); });
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ cfg.sites.splice(+b.dataset.i,1); renderSites(); syncRouteSites(); });
+}
+function renderHealth(){
+  const b=$("healthBadges"); const item=(ok,t)=>`<span class="badge ${ok?'ok':'no'}">${ok?'✓':'✕'} ${t}</span>`;
+  b.innerHTML =
+    item(!!cfg.webhookUrl && /^https:\/\//.test(cfg.webhookUrl),"Webhook") +
+    item(!!cfg.sharedToken,"Token") +
+    item(!!cfg.cloudName && !!cfg.uploadPreset,"Cloudinary") +
+    `<span class="badge info">📍 ${cfg.sites.length} ไซต์</span>` +
+    `<span class="badge ${routes.filter(r=>r.manager).length===cfg.sites.length?'ok':'no'}">🗂️ ${routes.filter(r=>r.manager).length}/${cfg.sites.length} route</span>`;
+}
+function configBlock(){
+  const ct = cfg.criticalThreshold==null ? "null" : Number(cfg.criticalThreshold);
+  return `const CONFIG = {
+  appVersion: ${JSON.stringify(cfg.appVersion)},
+  webhookUrl: ${JSON.stringify(cfg.webhookUrl)},
+  sharedToken: ${JSON.stringify(cfg.sharedToken)},
+  cloudinary: { cloudName: ${JSON.stringify(cfg.cloudName)}, uploadPreset: ${JSON.stringify(cfg.uploadPreset)} },
+  photoFolder: ${JSON.stringify(cfg.photoFolder)},
+  sites: ${JSON.stringify(cfg.sites)},
+  criticalThreshold: ${ct},
+  maxImageDim: ${Number(cfg.maxImageDim)||1600},
+  imageQuality: ${Number(cfg.imageQuality)||0.82}
+};`;
+}
+
+/* ============================================================================
+   ROUTING TAB
+   ============================================================================ */
+function siteOptions(sel){ return `<option value="">—</option>`+cfg.sites.map(s=>`<option value="${esc(s)}"${s===sel?" selected":""}>${esc(s)}</option>`).join(""); }
+function renderRoutes(){
+  const tb=$("routeBody"); tb.innerHTML="";
+  if(!routes.length){ tb.innerHTML=`<tr><td colspan="4" class="empty">ยังไม่มีแถว — กด "เพิ่มแถว"</td></tr>`; return; }
+  routes.forEach((r,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><select data-i="${i}" data-k="site">${siteOptions(r.site)}</select></td>
+      <td><input data-i="${i}" data-k="manager" value="${esc(r.manager)}" placeholder="manager@bevchain.co.th"></td>
+      <td><input data-i="${i}" data-k="cc" value="${esc(r.cc)}" placeholder="safety@bevchain.co.th;hr@..."></td>
+      <td><button class="row-del" data-del="${i}">×</button></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("select,input").forEach(el=>el.oninput=()=>{ routes[+el.dataset.i][el.dataset.k]=el.value; });
+  tb.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ routes.splice(+b.dataset.del,1); renderRoutes(); });
+}
+function syncRouteSites(){ renderRoutes(); }
+function routesCsv(){ return "Title,ManagerEmail,CCEmail\n"+routes.filter(r=>r.site).map(r=>[r.site,r.manager,r.cc].map(csvCell).join(",")).join("\n"); }
+function checkRoutes(){
+  const box=$("routeCheck"); const issues=[];
+  cfg.sites.forEach(s=>{ const r=routes.find(x=>x.site===s); if(!r||!r.manager) issues.push(`ไซต์ <b>${esc(s)}</b> ยังไม่มีอีเมลผู้จัดการ`); });
+  routes.forEach(r=>{ if(r.site && !cfg.sites.includes(r.site)) issues.push(`แถว <b>${esc(r.site)}</b> ไม่อยู่ในรายชื่อไซต์`); if(r.manager && !validEmails(r.manager)) issues.push(`อีเมลผู้จัดการของ <b>${esc(r.site||'?')}</b> รูปแบบไม่ถูก`); if(r.cc && !validEmails(r.cc)) issues.push(`CC ของ <b>${esc(r.site||'?')}</b> รูปแบบไม่ถูก`); });
+  box.innerHTML = issues.length
+    ? `<div class="warn"><span class="wic">⚠️</span><div>${issues.map(i=>"• "+i).join("<br>")}</div></div>`
+    : `<div class="badge ok" style="display:inline-flex">✓ ครบและถูกต้องทุกไซต์</div>`;
+}
+
+/* ============================================================================
+   REPORTS TAB
+   ============================================================================ */
+function fillReportCfg(){
+  $("rc_sp").value=reportCfg.sp||""; $("rc_pbi").value=reportCfg.pbi||"";
+  $("sb_url").value=reportCfg.supaUrl||""; $("sb_table").value=reportCfg.supaTable||"alcohol_reports";
+}
+function openUrl(u){ if(!u||!/^https?:\/\//.test(u)){ toast("ยังไม่ได้ตั้ง URL",true); return; } window.open(u,"_blank","noopener"); }
+async function loadReports(){
+  const url=$("sb_url").value.trim().replace(/\/$/,""), table=$("sb_table").value.trim(); supaKey=$("sb_key").value.trim();
+  if(!url||!table||!supaKey){ toast("กรอก URL / table / key ให้ครบ",true); return; }
+  reportCfg.supaUrl=url; reportCfg.supaTable=table; save("alc_admin_reportcfg",reportCfg);
+  toast("กำลังโหลด…");
+  try{
+    const res=await fetch(`${url}/rest/v1/${encodeURIComponent(table)}?select=*&order=submittedAt.desc.nullslast&limit=1000`,{headers:{apikey:supaKey,Authorization:"Bearer "+supaKey}});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    reportRows=await res.json();
+    if(!Array.isArray(reportRows)) reportRows=[];
+    $("reportsArea").style.display="block";
+    const sf=$("fSite"); sf.innerHTML='<option value="">ทั้งหมด</option>'+[...new Set(reportRows.map(r=>r.site).filter(Boolean))].map(s=>`<option>${esc(s)}</option>`).join("");
+    renderReports();
+    toast(`โหลด ${reportRows.length} รายการ ✓`);
+  }catch(e){ toast("โหลดไม่สำเร็จ: "+e.message+" (ตรวจ RLS/CORS/key)",true); }
+}
+const REPORT_COLS=[["caseId","เลขอ้างอิง"],["site","ไซต์"],["testDate","วันที่"],["fullName","ชื่อ"],["company","บริษัท"],["licensePlate","ทะเบียน"],["result1","ผล1"],["time1","เวลา1"],["result2","ผล2"],["time2","เวลา2"],["severity","สถานะ"],["reporter","ผู้รายงาน"],["photoUrl","รูป"],["submittedAt","ส่งเมื่อ"]];
+function filteredRows(){
+  const site=$("fSite").value, from=$("fFrom").value, to=$("fTo").value, sev=$("fSev").value, q=$("fSearch").value.trim().toLowerCase();
+  return reportRows.filter(r=>{
+    if(site && r.site!==site) return false;
+    if(sev && r.severity!==sev) return false;
+    if(from && (r.testDate||"")<from) return false;
+    if(to && (r.testDate||"")>to) return false;
+    if(q){ const hay=[r.fullName,r.company,r.licensePlate,r.reporter].map(x=>String(x||"").toLowerCase()).join(" "); if(!hay.includes(q)) return false; }
+    return true;
+  });
+}
+function renderReports(){
+  $("reportsHead").innerHTML="<tr>"+REPORT_COLS.map(c=>`<th>${c[1]}</th>`).join("")+"</tr>";
+  const rows=filteredRows();
+  $("reportsBody").innerHTML = rows.length ? rows.map(r=>"<tr>"+REPORT_COLS.map(([k])=>{
+    let v=r[k];
+    if(k==="photoUrl" && v) return `<td><a href="${esc(v)}" target="_blank" rel="noopener" style="color:var(--hazard)">📷</a></td>`;
+    if(k==="severity") return `<td><span class="badge ${v==='elevated'?'no':'info'}" style="padding:3px 8px">${esc(v||'')}</span></td>`;
+    return `<td class="${['caseId','testDate','licensePlate','result1','result2','time1','time2','submittedAt'].includes(k)?'mono':''}">${esc(v||'')}</td>`;
+  }).join("")+"</tr>").join("") : `<tr><td colspan="${REPORT_COLS.length}" class="empty">ไม่พบรายการตามตัวกรอง</td></tr>`;
+  $("reportsCount").textContent=`แสดง ${rows.length} จาก ${reportRows.length} รายการ`;
+}
+function exportReportsCsv(){
+  const rows=filteredRows(); if(!rows.length){ toast("ไม่มีข้อมูลให้ส่งออก",true); return; }
+  const head=REPORT_COLS.map(c=>c[0]);
+  const csv=head.join(",")+"\n"+rows.map(r=>head.map(k=>csvCell(r[k])).join(",")).join("\n");
+  download(`alcohol_reports_${new Date().toISOString().slice(0,10)}.csv`, "\uFEFF"+csv, "text/csv;charset=utf-8");
+}
+
+/* ============================================================================
+   WIRING
+   ============================================================================ */
+function init(){
+  applyTheme(load("alc_admin_theme","light"));
+  const until=lockState();
+  if(until){ $("loginMsg").className="login-msg err"; $("loginMsg").textContent=`ถูกล็อก ลองใหม่ใน ${Math.ceil((until-Date.now())/60000)} นาที`; }
+
+  $("loginBtn").onclick=tryLogin;
+  $("pw").addEventListener("keydown",e=>{ if(e.key==="Enter") tryLogin(); });
+  $("logoutBtn").onclick=logout;
+  $("themeBtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="light"?"dark":"light");
+
+  // tabs
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active"); $("panel-"+t.dataset.tab).classList.add("active");
+  });
+
+  // config
+  $("refreshHealth").onclick=()=>{ readConfig(); renderHealth(); };
+  $("addSite").onclick=()=>{ const v=$("newSite").value.trim(); if(!v) return; if(cfg.sites.includes(v)){ toast("มีไซต์นี้แล้ว",true); return; } cfg.sites.push(v); $("newSite").value=""; renderSites(); syncRouteSites(); renderHealth(); };
+  $("newSite").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("addSite").click(); } });
+  $("saveCfg").onclick=()=>{ readConfig(); save("alc_admin_cfg",cfg); renderHealth(); toast("บันทึกการตั้งค่าแล้ว ✓"); };
+  $("exportCfg").onclick=()=>{ readConfig(); download("alcohol_config.json", JSON.stringify(cfg,null,2), "application/json"); };
+  $("importCfgBtn").onclick=()=>$("importCfg").click();
+  $("importCfg").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const o=JSON.parse(rd.result); cfg=Object.assign({},DEFAULT_CFG,o); if(!Array.isArray(cfg.sites)) cfg.sites=DEFAULT_CFG.sites.slice(); fillConfig(); renderSites(); renderHealth(); toast("นำเข้าแล้ว — อย่าลืมกดบันทึก"); }catch(_){ toast("ไฟล์ JSON ไม่ถูกต้อง",true); } }; rd.readAsText(f); e.target.value=""; };
+  $("genCfg").onclick=()=>{ readConfig(); const el=$("cfgBlock"); el.textContent=configBlock(); el.style.display="block"; $("copyCfg").style.display="inline-flex"; };
+  $("copyCfg").onclick=()=>copyText($("cfgBlock").textContent);
+
+  // routing
+  $("addRoute").onclick=()=>{ routes.push({site:"",manager:"",cc:""}); renderRoutes(); };
+  $("saveRoutes").onclick=()=>{ save("alc_admin_routes",routes); renderHealth(); toast("บันทึกการส่งอีเมลแล้ว ✓"); };
+  $("exportRoutesCsv").onclick=()=>download("AlcoholTest_SiteRouting.csv","\uFEFF"+routesCsv(),"text/csv;charset=utf-8");
+  $("exportRoutesJson").onclick=()=>download("routing.json",JSON.stringify(routes,null,2),"application/json");
+  $("checkRoutes").onclick=checkRoutes;
+
+  // reports
+  $("openSp").onclick=()=>openUrl($("rc_sp").value.trim());
+  $("openPbi").onclick=()=>openUrl($("rc_pbi").value.trim());
+  $("saveReportCfg").onclick=()=>{ reportCfg.sp=$("rc_sp").value.trim(); reportCfg.pbi=$("rc_pbi").value.trim(); save("alc_admin_reportcfg",reportCfg); toast("จำ URL แล้ว ✓"); };
+  $("loadReports").onclick=loadReports;
+  ["fSite","fFrom","fTo","fSev","fSearch"].forEach(id=>$(id).addEventListener("input",renderReports));
+  $("exportReportsCsv").onclick=exportReportsCsv;
+
+  // security
+  $("genHash").onclick=async()=>{ const p=$("newPw").value; if(!p){ toast("พิมพ์รหัสก่อน",true); return; } const h=await sha256(p); $("hashOut").textContent=`const PW_HASH = "${h}";`; $("hashOut").style.display="block"; $("copyHash").style.display="inline-flex"; };
+  $("copyHash").onclick=()=>copyText($("hashOut").textContent);
+  $("clearLocal").onclick=()=>{ if(!confirm("ล้างข้อมูลตั้งค่าทั้งหมดในเครื่องนี้?")) return; ["alc_admin_cfg","alc_admin_routes","alc_admin_reportcfg"].forEach(k=>store&&store.removeItem(k)); bootData(); toast("ล้างแล้ว — คืนค่าเริ่มต้น"); };
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

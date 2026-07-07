@@ -1,0 +1,94 @@
+<!--
+============================================================================
+ email-template.html — วางใน "Body" ของ action Send an email (V2)
+----------------------------------------------------------------------------
+ วิธีใช้: กด </> (Code view) ในช่อง Body แล้ววาง HTML นี้
+ แล้วแทนที่ @{...} ด้วย Dynamic content จาก Parse JSON
+ (ในโปรแกรมจริงพิมพ์ @{body('Parse_JSON')?['field']} ได้เลย)
+
+ เปิดไฟล์นี้ใน browser เพื่อ preview โครง (ตัวแปรจะยังเป็นข้อความ @{...})
+============================================================================
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f3f5;padding:16px 0;font-family:Segoe UI,Arial,sans-serif;">
+ <tr><td align="center">
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #e0e0e0;">
+
+   <!-- hazard stripe -->
+   <tr><td style="height:6px;background:#C1121F;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+   <!-- header -->
+   <tr><td style="background:#C1121F;color:#ffffff;padding:18px 22px;font-size:18px;font-weight:bold;">
+     🚨 แจ้งเตือน: พบผลตรวจแอลกอฮอล์เป็นบวก
+   </td></tr>
+
+   <!-- case + site -->
+   <tr><td style="padding:16px 22px 4px 22px;color:#212121;font-size:14px;line-height:1.6;">
+     เรียน ผู้จัดการไซต์ <b>@{body('Parse_JSON')?['site']}</b><br>
+     ระบบได้รับรายงานผลตรวจแอลกอฮอล์เป็นบวก รายละเอียดดังนี้
+     <div style="margin-top:10px;font-family:Consolas,monospace;font-size:13px;color:#555;">
+       เลขอ้างอิง: <b style="color:#C1121F;">@{body('Parse_JSON')?['caseId']}</b>
+     </div>
+   </td></tr>
+
+   <!-- detail table -->
+   <tr><td style="padding:8px 22px 4px 22px;">
+    <table role="presentation" width="100%" cellpadding="9" cellspacing="0" style="border-collapse:collapse;table-layout:fixed;font-size:14px;">
+      <tr>
+        <td width="38%" style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">ชื่อ-นามสกุล</td>
+        <td style="border:1px solid #e2e2e2;word-wrap:break-word;">@{body('Parse_JSON')?['fullName']}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">บริษัท/สังกัด</td>
+        <td style="border:1px solid #e2e2e2;word-wrap:break-word;">@{body('Parse_JSON')?['company']}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">ทะเบียนรถ</td>
+        <td style="border:1px solid #e2e2e2;">@{if(equals(body('Parse_JSON')?['personType'],'transport'), body('Parse_JSON')?['licensePlate'], '— (พนักงานทั่วไป)')}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">ผลครั้งที่ 1</td>
+        <td style="border:1px solid #e2e2e2;font-family:Consolas,monospace;">@{body('Parse_JSON')?['result1']} &nbsp;(เวลา @{body('Parse_JSON')?['time1']})</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">ผลครั้งที่ 2</td>
+        <td style="border:1px solid #e2e2e2;font-family:Consolas,monospace;">@{body('Parse_JSON')?['result2']} &nbsp;(เวลา @{body('Parse_JSON')?['time2']})</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">วันที่ตรวจ</td>
+        <td style="border:1px solid #e2e2e2;font-family:Consolas,monospace;">@{body('Parse_JSON')?['testDate']}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">รปภ.ผู้รายงาน</td>
+        <td style="border:1px solid #e2e2e2;">@{body('Parse_JSON')?['reporter']}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e2e2;background:#fafafa;font-weight:bold;color:#444;">หมายเหตุ</td>
+        <td style="border:1px solid #e2e2e2;word-wrap:break-word;">@{body('Parse_JSON')?['notes']}</td>
+      </tr>
+    </table>
+   </td></tr>
+
+   <!-- severity note (แสดงแถบเตือนถ้าสูงกว่าเกณฑ์) -->
+   <tr><td style="padding:6px 22px;">
+     @{if(equals(body('Parse_JSON')?['severity'],'elevated'), '<div style="background:#FBF0DD;border:1px solid #C77900;color:#8a5400;padding:10px 12px;font-size:13px;font-weight:bold;">⚠️ ค่าที่วัดได้สูงกว่าเกณฑ์ที่กำหนด</div>', '')}
+   </td></tr>
+
+   <!-- photo button -->
+   <tr><td style="padding:10px 22px 4px 22px;">
+     <a href="@{body('Parse_JSON')?['photoUrl']}" style="display:inline-block;background:#C1121F;color:#ffffff;text-decoration:none;padding:11px 20px;font-size:14px;font-weight:bold;border-radius:6px;">📷 ดูรูปหลักฐาน</a>
+   </td></tr>
+
+   <!-- action prompt -->
+   <tr><td style="padding:10px 22px 18px 22px;">
+     <div style="color:#C1121F;font-weight:bold;font-size:14px;">⏱️ กรุณาดำเนินการตามมาตรการควบคุมโดยด่วน</div>
+   </td></tr>
+
+   <!-- footer -->
+   <tr><td style="background:#2B3440;color:#c8ccd1;padding:12px 22px;font-size:11px;">
+     ■ เอกสารลับ · สำหรับใช้ภายในเท่านั้น · BevChain Security &amp; Compliance<br>
+     ส่งอัตโนมัติเมื่อ @{body('Parse_JSON')?['submittedAt']} · ห้ามส่งต่อนอกผู้เกี่ยวข้อง
+   </td></tr>
+
+  </table>
+ </td></tr>
+</table>
