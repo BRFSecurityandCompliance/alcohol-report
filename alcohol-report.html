@@ -794,8 +794,8 @@ function formatTime(e){
   e.target.value = v;
   clearErr(e.target.id);
 }
-function showErr(id){ $(id).classList.add("invalid"); const e=$("err_"+id); if(e) e.classList.add("show"); }
-function clearErr(id){ $(id).classList.remove("invalid"); const e=$("err_"+id); if(e) e.classList.remove("show"); }
+function showErr(id){ const el=$(id); if(el) el.classList.add("invalid"); const e=$("err_"+id); if(e) e.classList.add("show"); }
+function clearErr(id){ const el=$(id); if(el) el.classList.remove("invalid"); const e=$("err_"+id); if(e) e.classList.remove("show"); }
 
 function validate(){
   let ok=true; const bad=[];
@@ -992,9 +992,12 @@ function refreshPendingBanner(){
 async function resendPending(){
   const a=getPending(); if(!a.length) return;
   showLoading(t("load_send"));
-  for(const p of [...a]){ try{ await sendToFlow(p); removePending(p.caseId); }catch(_){ /* keep */ } }
+  let sentCurrent=false;
+  for(const p of [...a]){ try{ await sendToFlow(p); removePending(p.caseId); if(p.caseId===caseId) sentCurrent=true; }catch(_){ /* keep */ } }
   hideLoading(); refreshPendingBanner();
-  if(getPending().length===0){ success(a[a.length-1].caseId); clearDraft(); }
+  // only jump to the success screen if the case being displayed right now is the one that just sent —
+  // otherwise this is a background flush of older queued cases and must not clobber an in-progress draft
+  if(sentCurrent){ success(caseId); clearDraft(); }
 }
 
 /* ============================================================================
