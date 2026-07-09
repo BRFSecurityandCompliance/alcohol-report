@@ -195,16 +195,18 @@ input.invalid,select.invalid,textarea.invalid{border-color:var(--hazard);backgro
 .mono-in{font-family:var(--font-mono)}
 
 /* segmented person-type */
-.segment{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1.5px solid var(--line-strong);border-radius:9px;overflow:hidden}
+.segment{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .segment label{
   padding:12px 10px;text-align:center;cursor:pointer;font-family:var(--font-display);font-weight:500;font-size:14px;
   color:var(--muted);background:var(--surface);transition:.15s;display:flex;flex-direction:column;gap:2px;align-items:center;
+  border:1.5px solid var(--line-strong);border-radius:9px;
 }
 .segment label small{font-size:11px;font-family:var(--font-body);font-weight:400}
-.segment label + label{border-left:1.5px solid var(--line-strong)}
+.segment label:hover{border-color:var(--hazard);color:var(--hazard)}
 .segment input{position:absolute;opacity:0;pointer-events:none}
-.segment input:checked + label{background:var(--hazard);color:#fff}
+.segment input:checked + label{background:var(--hazard);color:#fff;border-color:var(--hazard)}
 .segment input:checked + label small{color:rgba(255,255,255,.85)}
+.segment input:focus-visible + label{outline:2px solid var(--hazard);outline-offset:2px}
 
 /* conditional plate */
 #plateField{display:none}
